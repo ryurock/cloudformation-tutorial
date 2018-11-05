@@ -13,7 +13,7 @@ Resources:
   Ec2SecurityGroupApp:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupName: !Sub "${ServiceName}_app"
+      GroupName: !Sub "${Prefix}_${ServiceName}_app"
       GroupDescription: "web server security group"
       VpcId:
         "{your VPCID}"
@@ -44,3 +44,40 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${Prefix}_${ServiceName}_app"
+
+  RdsSecurityGroupApp:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: !Sub "${Prefix}_${ServiceName}-rds"
+      GroupDescription: "dbserver security group"
+      VpcId:
+         "{your VPCID}"
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        SourceSecurityGroupName: !Sub "${Prefix}_${ServiceName}_app"
+      Tags:
+        - Key: Name
+          Value: !Sub "${Prefix}_${ServiceName}-rds"
+
+  RdsInstace:
+    Type: "AWS::RDS::DBInstance"
+    DeletionPolicy: Delete
+    Properties:
+      DBInstanceIdentifier: !Sub "${Prefix}-${ServiceName}-db"
+      AvailabilityZone: "ap-northeast-1c"
+      DBInstanceClass: "t2.small"
+      AllocatedStorage: 6
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref RdsSecurityGroupApp
+      Engine: MySQL
+      EngineVersion: 5.7.23
+      DBName: cf-tutorial
+      MasterUsername: cf-tutorial
+      MasterUserPassword: xxxpopqwopwopecOeuoq
+      Tags:
+        - Key: Name
+          Value: !Sub "${Prefix}_${ServiceName}-db"
+
